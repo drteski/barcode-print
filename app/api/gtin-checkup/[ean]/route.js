@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
-import * as fs from 'node:fs';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
 	const { ean } = params;
