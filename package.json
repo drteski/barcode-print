@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm install && npx playwright install && npx playwright install-deps",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -18,7 +17,6 @@
     "clsx": "^2.1.1",
     "jspdf": "^2.5.1",
     "next": "14.2.4",
-    "playwright": "^1.45.2",
     "puppeteer": "^22.12.0",
     "puppeteer-core": "^22.12.0",
     "react": "^18",
