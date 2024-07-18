@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
-import playwrite from 'playwright'
 
 export const dynamic = 'force-dynamic';
 
