@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,9 +8,13 @@ export async function GET(request, { params }) {
 	const { ean } = params;
 	console.log(ean);
 	const getGtinData = async () => {
+		chromium.setGraphicsMode = false
 		const browser = await puppeteer.launch({
-			headless: true,
-		});
+			args: chromium.args,
+			defaultViewport: chromium.defaultViewport,
+			executablePath: await chromium.executablePath(),
+			headless: chromium.headless,
+		})
 		const page = await browser.newPage();
 		await page.goto(`https://www.eprodukty.gs1.pl/catalog/${ean}`);
 
