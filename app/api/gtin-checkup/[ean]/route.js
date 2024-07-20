@@ -3,6 +3,7 @@ import puppeteer from 'puppeteer';
 import chromium from '@sparticuz/chromium';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
 
 export async function GET(request, { params }) {
 	const { ean } = params;
