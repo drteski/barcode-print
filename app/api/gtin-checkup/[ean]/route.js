@@ -7,7 +7,6 @@ export const maxDuration = 60;
 
 export async function GET(request, { params }) {
 	const { ean } = params;
-	console.log(ean);
 	const getGtinData = async () => {
 		chromium.setGraphicsMode = false;
 		const browser = await puppeteer.launch({
@@ -19,7 +18,7 @@ export async function GET(request, { params }) {
 		const page = await browser.newPage();
 		await page.goto(`https://www.eprodukty.gs1.pl/catalog/${ean}`);
 
-		const scrapedData = await page.waitForSelector('.main__header', { timeout: 3000 }).then(res => res).catch(error => '');
+		const scrapedData = await page.waitForSelector('.main__header', { timeout: 1000 }).then(res => res).catch(error => '');
 
 		if (scrapedData === '') {
 			return 'Nie znaleziono eanu';
