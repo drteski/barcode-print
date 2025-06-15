@@ -2,10 +2,8 @@
 
 import { ReactBarcode } from 'react-jsbarcode';
 import { Button } from '@/components/ui/button';
-import { createRef, useEffect, useMemo, useRef, useState } from 'react';
+import { createRef, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { Textarea } from '@/components/ui/textarea';
 import { isValidEAN13 } from '@/lib/checkEan';
 
@@ -56,15 +54,32 @@ const BarcodePage = () => {
 	}, [eans]);
 
 	const handleDownloadPdf = async (ref, currentEan, name) => {
-		const element = ref.current;
-		const pdf = new jsPDF('landscape', 'mm', [25, 35]);
-		const pdfWidth = pdf.internal.pageSize.getWidth();
-		const pdfHeight = pdf.internal.pageSize.getHeight();
-		await html2canvas(element, { scale: 15 }).then(canvas => {
-			const data = canvas.toDataURL('image/png');
-			pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight);
-			pdf.save(`${currentEan}-${name}.pdf`);
-		});
+		try {
+			const response = await fetch('/api/barcode', {
+				method : 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body   : JSON.stringify({
+					ean: currentEan,
+					name
+				})
+			});
+
+
+			if (!response.ok) {
+				throw new Error('Błąd generowania PDF');
+			}
+
+			const blob = await response.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${currentEan}-${name}.pdf`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			console.error(err);
+			alert('Nie udało się pobrać pliku PDF.');
+		}
 	};
 
 	const getGtinData = async (e) => {
@@ -74,7 +89,10 @@ const BarcodePage = () => {
 
 		const gtinData = eans.map(async (ean) => {
 			return await axios.get(`/api/gtin-checkup/${ean}`).then(res =>
-				setProducts((prevState) => [{ name: res.data.data, ean }, ...prevState])
+				setProducts((prevState) => [{
+					name: res.data.data,
+					ean
+				}, ...prevState])
 			).catch(
 				setProducts((prevState) => [...prevState])
 			);
@@ -90,10 +108,11 @@ const BarcodePage = () => {
 		if (e.target.value.length === 13)
 			return setEans([e.target.value]);
 
-		const eanCodes = e.target.value.split(/^((?![\d]{13}).)*$/gm).filter(ean => ean !== '').filter(ean => ean.match(/\d/)).map(ean => ean.split(/[\n]|[;]|[.]|[,]|[:]|[ ]|[-]/gm)).flatMap(ean => ean).filter(ean => ean.match(/\d/)).filter(ean => ean.match(/[\d]{13}/)).filter(ean => ean.length === 13).reduce((prev, curr) => {
-			if (prev.includes(curr)) return prev;
-			return [...prev, curr];
-		}, []).filter(ean => ean[0] !== '7');
+		const eanCodes = e.target.value.split(/^((?![\d]{13}).)*$/gm).filter(ean => ean !== '').filter(ean => ean.match(/\d/)).map(ean => ean.split(/[\n]|[;]|[.]|[,]|[:]|[ ]|[-]/gm))
+			.flatMap(ean => ean).filter(ean => ean.match(/\d/)).filter(ean => ean.match(/[\d]{13}/)).filter(ean => ean.length === 13).reduce((prev, curr) => {
+				if (prev.includes(curr)) return prev;
+				return [...prev, curr];
+			}, []).filter(ean => ean[0] !== '7');
 		const validEans = eanCodes.filter(ean => isValidEAN13(ean));
 		const inValidEans = eanCodes.filter(ean => !isValidEAN13(ean));
 		setInvalidEans(inValidEans);
@@ -130,13 +149,16 @@ const BarcodePage = () => {
 			<div className="grid h-[min-content] sm:max-h-[calc(100dvh_-_32px)] max-h-[calc(50dvh_-_24px)] overflow-y-auto gap-4 items-center grid-cols-[repeat(auto-fill,_minmax(36mm,_1fr))]">
 				<>
 					{(products || []).map((product, index) => {
-						const { name, ean } = product;
+						const {
+							      name,
+							      ean
+						      } = product;
 						console.log(name);
 						if (name === 'Nie znaleziono eanu') return;
 						return (<div key={ean}
 						             className="border border-neutral-200 h-[150px] rounded-md relative pt-12 bg-white flex items-center justify-center">
 							<div ref={refs[index]} id="pdf" className="p-0.5 w-[35mm] h-[25mm]">
-								<p className="text-[10px] text-center font-medium tracking-[-0.5px] uppercase leading-[10px] h-[14mm] overflow-hidden block">{name}</p>
+								<p className="text-[10px] text-center font-medium tracking-[-0.5px] -translate-y-1 uppercase leading-[10px] h-[14mm] block">{name}</p>
 								{name !== '' ? (<ReactBarcode className="w-full h-[10mm]"
 								                              value={ean ? ean : '0000000000000'}
 								                              options={{
