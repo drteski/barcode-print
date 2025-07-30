@@ -7,6 +7,7 @@ export const maxDuration = 60;
 
 export async function GET(request, { params }) {
 	const { ean } = params;
+	console.log(ean)
 	const getGtinData = async () => {
 		chromium.setGraphicsMode = false;
 		const browser = await puppeteer.launch({
