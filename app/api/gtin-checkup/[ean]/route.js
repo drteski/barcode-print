@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
 			headless       : chromium.headless
 		});
 		const page = await browser.newPage();
-		await page.goto(`https://www.eprodukty.gs1.pl/catalog/${ean}`);
+		await page.goto(`https://www.eprodukty.gs1.pl/catalog/0${ean}`);
 
 		const scrapedData = await page.waitForSelector('.main__header', { timeout: 1000 }).then(res => res).catch(error => '');
 
