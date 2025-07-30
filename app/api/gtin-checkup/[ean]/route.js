@@ -18,7 +18,9 @@ export async function GET(request, { params }) {
 		const page = await browser.newPage();
 		await page.goto(`https://www.eprodukty.gs1.pl/catalog/0${ean}`);
 
-		const scrapedData = await page.waitForSelector('.main__header', { timeout: 1000 }).then(res => res).catch(error => '');
+		const scrapedData = await page.waitForSelector('.main__header', { timeout: 1000 }).then(res => {
+			console.log(res)
+			return res}).catch(error => '');
 		console.log(scrapedData)
 		if (scrapedData === '') {
 			return 'Nie znaleziono eanu';
