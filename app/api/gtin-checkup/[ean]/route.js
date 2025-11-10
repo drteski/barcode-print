@@ -50,22 +50,35 @@ export async function GET(request, { params }) {
 	const { ean } = params;
 
 	const getGtinData = async () => {
-		chromium.setGraphicsMode = false;
+		const isProd = !!process.env.AWS_REGION || !!process.env.VERCEL || process.env.NODE_ENV === 'production';
 
-		const browser = await puppeteer.launch({
-			args: chromium.args,
-			defaultViewport: chromium.defaultViewport,
-			executablePath: await chromium.executablePath(),
-			headless: chromium.headless,
-		});
+		let browser;
+
+		if (isProd) {
+			chromium.setGraphicsMode = false;
+
+			browser = await puppeteer.launch({
+				args: chromium.args,
+				defaultViewport: chromium.defaultViewport,
+				executablePath: await chromium.executablePath(),
+				headless: chromium.headless,
+			});
+		} else {
+			// DEV: możesz też ręcznie podać ścieżkę do Chrome, jeśli Puppeteer nie znajdzie automatycznie
+			browser = await puppeteer.launch({
+				headless: true,
+				executablePath: 'C:\\Users\\DKKT\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe' // <- odkomentuj jeśli potrzebne
+			});
+		}
 
 		const page = await browser.newPage();
-		await page.goto(`https://www.eprodukty.gs1.pl/catalog/0${ean}`);
+		await page.goto(`https://www.eprodukty.gs1.pl/catalog?gtin_number=${ean}&offset=0`);
 
 		const scrapedData = await page
-			.waitForSelector('.main__header', { timeout: 1000 })
+			.waitForSelector('.catalog__table', { timeout: 1000 })
 			.then(res => res)
 			.catch(() => '');
+			console.log(scrapedData);
 
 		if (!scrapedData) {
 			await browser.close();
