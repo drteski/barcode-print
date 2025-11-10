@@ -76,9 +76,11 @@ export async function GET(request, { params }) {
 
 		const scrapedData = await page
 			.waitForSelector('.catalog__table', { timeout: 1000 })
-			.then(res => res)
+			.then(res => { 
+				console.log(res)
+				return res 
+			})
 			.catch(() => '');
-			console.log(scrapedData);
 
 		if (!scrapedData) {
 			await browser.close();
