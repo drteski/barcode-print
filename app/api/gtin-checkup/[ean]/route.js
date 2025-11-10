@@ -72,19 +72,30 @@ export async function GET(request, { params }) {
 		}
 
 		const page = await browser.newPage();
-		await page.goto(`https://www.eprodukty.gs1.pl/catalog?gtin_number=${ean}&offset=0`);
-
-		const scrapedData = await page
-			.waitForSelector('.catalog__table', { timeout: 1000 })
-			.then(res => { 
-				console.log(res)
-				return res 
-			})
+		await page.goto('https://www.eprodukty.gs1.pl/login');
+		const element = await page.$('.button__login', {timeout: 1000})
+		const text = await page.evaluate(el => el.textContent, element);
+		if(text === 'Zaloguj się') {
+			await page.goto('https://www.eprodukty.gs1.pl/login');
+			await page.setViewport({width: 1920, height: 1024});
+			await page.type('#email','biuro@dkkt.pl',{delay: 100});
+			await page.type('#password','Dr83754126!@',{delay: 100})
+			await page.keyboard.press('Enter');
+		}
+		const ell = await page.$('#dropdown-basic', {timeout: 5000});
+		const logged = await page.evaluate(el => console.log(el), ell);
+		console.log(logged)
+		if(logged === 'Krzysztof Tomaszewski') {
+			await page.goto(`https://www.eprodukty.gs1.pl/catalog?gtin_number=${ean}&offset=0`);
+			const scrapedData = await page
+			.waitForSelector('.catalog-table__gtin-number', { timeout: 3000 })
+			.then(res => res)
 			.catch(() => '');
-
-		if (!scrapedData) {
-			await browser.close();
-			return 'Nie znaleziono eanu';
+			console.log(scrapedData)
+			if (!scrapedData) {
+				await browser.close();
+				return 'Nie znaleziono eanu';
+			}
 		}
 
 		const productName = await scrapedData.evaluate(el => el.textContent);
