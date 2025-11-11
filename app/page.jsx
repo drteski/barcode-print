@@ -87,17 +87,14 @@ const BarcodePage = () => {
 		setIsLoading(true);
 		e.preventDefault();
 
-		const gtinData = eans.map(async (ean) => {
-			return await axios.get(`/api/gtin-checkup/${ean}`).then(res =>
-				setProducts((prevState) => [{
-					name: res.data.data,
-					ean
-				}, ...prevState])
+		const gtinData = async () =>
+			await axios.post(`/api/gtin-checkup`, { eans }).then(res =>
+				setProducts(res.data.data)
 			).catch(
 				setProducts((prevState) => [...prevState])
 			);
-		});
-		await Promise.all(gtinData).then(() => setIsLoading(false));
+
+		await gtinData().then(() => setIsLoading(false));
 	};
 	const handleEanInput = (e) => {
 		e.preventDefault();
@@ -119,6 +116,11 @@ const BarcodePage = () => {
 		return setEans(validEans);
 	};
 
+	const handleJsonInput = (e) => {
+		e.preventDefault();
+		setProducts(JSON.parse(e.target.value));
+	};
+
 	const convertText = () => {
 		inputRef.current.value = eans.join('\n');
 	};
@@ -126,16 +128,19 @@ const BarcodePage = () => {
 
 	return (
 		<main className="grid sm:grid-cols-[auto_1fr] sm:grid-rows-1 gap-4 h-dvh p-4 overflow-x-auto grid-cols-1 grid-rows-auto">
-
 			<div className="w-full sm:w-[300px] sm:h-[calc(100dvh_-_32px)] h-[calc(50dvh_-_24px)] flex flex-col gap-4 relative">
 				<Textarea ref={inputRef} className="border h-full resize-none"
 				          rows="20"
-				          placeholder="EANy"
+				          placeholder="EANy nasze"
 				          onChange={(e) => handleEanInput(e)}/>
 				<Button className="w-full py-5"
 				        size="icon"
 				        onClick={getGtinData}>{isLoading ? (<SvgSpinners90RingWithBg className="w-7 h-7"/>) :
 					<>{eans.length === 0 ? ('---') : (`Stwórz ${eans.length} etykiety`)}</>}</Button>
+				<Textarea ref={inputRef} className="border h-full resize-none"
+				          rows="20"
+				          placeholder="EANy hurtownie"
+				          onChange={(e) => handleJsonInput(e)}/>
 				<Button className="absolute top-2 right-2"
 				        onClick={convertText} title="Przetwórz tekst"
 				        size="icon"><MaterialSymbolsLightScreenRotationAltRounded
@@ -153,7 +158,6 @@ const BarcodePage = () => {
 							      name,
 							      ean
 						      } = product;
-						console.log(name);
 						if (name === 'Nie znaleziono eanu') return;
 						return (<div key={ean}
 						             className="border border-neutral-200 h-[150px] rounded-md relative pt-12 bg-white flex items-center justify-center">
