@@ -52,7 +52,6 @@ const BarcodePage = () => {
 		);
 		return items;
 	}, [eans]);
-
 	const handleDownloadPdf = async (ref, currentEan, name) => {
 		try {
 			const response = await fetch('/api/barcode', {
@@ -81,7 +80,6 @@ const BarcodePage = () => {
 			alert('Nie udało się pobrać pliku PDF.');
 		}
 	};
-
 	const getGtinData = async (e) => {
 		setProducts([]);
 		setIsLoading(true);
@@ -112,6 +110,7 @@ const BarcodePage = () => {
 			}, []).filter(ean => ean[0] !== '7');
 		const validEans = eanCodes.filter(ean => isValidEAN13(ean));
 		const inValidEans = eanCodes.filter(ean => !isValidEAN13(ean));
+
 		setInvalidEans(inValidEans);
 		return setEans(validEans);
 	};
