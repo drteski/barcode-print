@@ -15,6 +15,19 @@ export const MaterialSymbolsLightDownload = (props) => (
 	</svg>
 );
 
+
+export function MaterialSymbolsLightPrintOutline(props) {
+	return (
+		<svg xmlns="http://www.w3.org/2000/svg"
+		     width="1em"
+		     height="1em"
+		     viewBox="0 0 24 24" {...props}>
+			<path fill="currentColor"
+			      d="M16 8.616v-3H8v3H7v-4h10v4zm-11.423 1h14.846zm13.038 2.5q.425 0 .713-.288t.287-.712t-.287-.713t-.713-.288t-.712.288t-.288.713t.288.712t.713.288M16 19v-4.538H8V19zm1 1H7v-4H3.577v-5.384q0-.85.577-1.425t1.423-.576h12.846q.85 0 1.425.576t.575 1.424V16H17zm2.423-5v-4.384q0-.425-.287-.713t-.713-.288H5.577q-.425 0-.712.288t-.288.713V15H7v-1.538h10V15z"/>
+		</svg>
+	);
+}
+
 export const MaterialSymbolsLightScreenRotationAltRounded = (props) => (
 	<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>
 		<path fill="currentColor"
@@ -52,7 +65,8 @@ const BarcodePage = () => {
 		);
 		return items;
 	}, [eans]);
-	const handleDownloadPdf = async (ref, currentEan, name) => {
+
+	const handlePrintPdf = async (ref, currentEan, name) => {
 		try {
 			const response = await fetch('/api/barcode', {
 				method : 'POST',
@@ -63,6 +77,29 @@ const BarcodePage = () => {
 				})
 			});
 
+
+			if (!response.ok) {
+				throw new Error('Błąd generowania PDF');
+			}
+
+			const blob = await response.blob();
+			const url = URL.createObjectURL(blob);
+			window.open(url, '_blank');
+		} catch (err) {
+			console.error(err);
+			alert('Nie udało się pobrać pliku PDF.');
+		}
+	};
+	const handleDownloadPdf = async (ref, currentEan, name) => {
+		try {
+			const response = await fetch('/api/barcode', {
+				method : 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body   : JSON.stringify({
+					ean: currentEan,
+					name
+				})
+			});
 
 			if (!response.ok) {
 				throw new Error('Błąd generowania PDF');
@@ -114,17 +151,15 @@ const BarcodePage = () => {
 		setInvalidEans(inValidEans);
 		return setEans(validEans);
 	};
-
 	const handleJsonInput = (e) => {
 		e.preventDefault();
-		setProducts(JSON.parse(e.target.value));
+		setProducts(JSON.parse(e.target.value.replace(/[\n]/gm, '').replace('},]', '}]')));
+		e.target.value = e.target.value.replace(/[\n]/gm, '').replace('},]', '}]');
 	};
-
 	const convertText = () => {
 		inputRef.current.value = eans.join('\n');
 	};
-
-
+	
 	return (
 		<main className="grid sm:grid-cols-[auto_1fr] sm:grid-rows-1 gap-4 h-dvh p-4 overflow-x-auto grid-cols-1 grid-rows-auto">
 			<div className="w-full sm:w-[300px] sm:h-[calc(100dvh_-_32px)] h-[calc(50dvh_-_24px)] flex flex-col gap-4 relative">
@@ -176,7 +211,10 @@ const BarcodePage = () => {
 							</div>
 							<Button onClick={() => handleDownloadPdf(refs[index], ean, name)}
 							        className="absolute top-2 right-2"
-							        size="icon"><MaterialSymbolsLightDownload className="h-6 w-6"/></Button></div>);
+							        size="icon"><MaterialSymbolsLightDownload className="h-6 w-6"/></Button>
+							<Button onClick={() => handlePrintPdf(refs[index], ean, name)}
+							        className="absolute top-2 left-2"
+							        size="icon"><MaterialSymbolsLightPrintOutline className="h-6 w-6"/></Button></div>);
 					})}
 				</>
 			</div>

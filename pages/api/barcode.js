@@ -14,16 +14,15 @@ export default async function handler(req, res) {
 		      ean,
 		      name
 	      } = req.body;
-
-	if (!ean || typeof ean !== 'string' || ean.length !== 13 || !/^\d{13}$/.test(ean)) {
+	
+	if (!ean.toString() || typeof ean.toString() !== 'string' || ean.toString().length !== 13 || !/^\d{13}$/.test(ean.toString())) {
 		return res.status(400).json({ error: 'Invalid or missing EAN' });
 	}
 
 	try {
-		// Generuj SVG jako string (nie buffer)
 		const svgText = bwipjs.toSVG({
 			bcid           : 'ean13',
-			text           : ean,
+			text           : ean.toString(),
 			scale          : 4,
 			height         : 7.5,
 			includetext    : true,
@@ -49,7 +48,6 @@ export default async function handler(req, res) {
 			height: 50
 		});
 
-		// Osadź SVG jako kod kreskowy
 		SVGtoPDF(doc, svgText, 15, 50, {
 			width : 120,
 			height: 40

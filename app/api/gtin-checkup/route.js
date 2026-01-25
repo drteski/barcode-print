@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-
-// export const dynamic = 'force-dynamic';
-// export const maxDuration = 60;
-
 export async function POST(request) {
 	const { eans } = await request.json();
 
@@ -26,6 +22,5 @@ export async function POST(request) {
 			ean : ean
 		}));
 	}
-	console.log(items);
 	return NextResponse.json({ data: items });
 }
